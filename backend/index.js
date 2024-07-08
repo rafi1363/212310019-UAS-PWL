@@ -45,30 +45,30 @@ app.post('/extract-dates', bodyParser.text(), (req, res) => {
 });
 
 // Endpoint for uploading files
+// Endpoint for uploading files
 app.post('/upload', upload.single('file'), async (req, res) => {
   try {
     const fileContent = fs.readFileSync(req.file.path);
-    const pdfBuffer = req.file.buffer;
     const data = await pdfParse(fileContent);
     const dates = extractDates(data.text);
     const { originalname, path } = req.file;
-
-    // Check if the dates are expired
     const currentDate = moment();
+
+    // Check if the dates are expired and prepare the data for insertion
     const datesStatus = dates.map(date => {
-      const dateMoment = moment(date, 'DD/MM/YYYY'); // Sesuaikan format dengan format tanggal di dokumen Anda
+      const dateMoment = moment(date, 'DD/MM/YYYY');
       return {
         date: date,
-        status: dateMoment.isBefore(currentDate) ? 'expired' : 'not expired'
+        status: dateMoment.isBefore(currentDate) ? 1 : 0 // 1 for expired, 0 for not expired
       };
     });
 
-
-    // Simpan informasi file ke dalam tabel
-    const query = 'INSERT INTO Files (FileName, FilePath, ExtractedDates) VALUES (?, ?, ?)';
+    // Insert file information and dates status into the table
+    const query = 'INSERT INTO Files (FileName, FilePath, ExtractedDates, Status) VALUES (?, ?, ?, ?)';
+    const statusValues = datesStatus.map(d => d.status); // Will be 1 for expired, 0 for not expired
     try {
-        await db_mysql.sequelize.query(query, { replacements: [originalname, path, JSON.stringify(dates)] });
-        res.json({ message: 'File berhasil diunggah', file: req.file, dates: dates});
+        await db_mysql.sequelize.query(query, { replacements: [originalname, path, JSON.stringify(dates), statusValues] });
+        res.json({ message: 'File berhasil diunggah', file: req.file, dates: datesStatus});
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Terjadi kesalahan pada server' });
@@ -105,11 +105,6 @@ app.get('/fetch-all', async (req, res) => {
         res.status(500).json({ error: 'Terjadi kesalahan pada server' });
     }
 });
-
-
-
-
-
 const PORT = process.env.PORT || 3003;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
