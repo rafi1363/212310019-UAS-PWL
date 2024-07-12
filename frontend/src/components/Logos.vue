@@ -79,7 +79,7 @@ export default {
       }).then((result) => {
         if (result.isConfirmed) {
           axios
-            .delete("http://localhost:3003/delete-file/${item.id}")
+            .delete("http://localhost:3003/data/delete-file/${item.id}")
             .then((response) => {
               // Hapus item dari array items
               this.items = this.items.filter((i) => i.id !== item.id);
@@ -107,7 +107,7 @@ export default {
     async getDatabaseData() {
       try {
         // Ganti dengan kode yang mengambil data dari tabel yang sesuai
-        const response = await axios.get("http://localhost:3003/fetch-all");
+        const response = await axios.get("http://localhost:3003/data/fetch-all");
         this.items = response.data.documents.map((doc) => ({
           ...doc,
         }));
@@ -127,7 +127,7 @@ export default {
         formData.append("file", this.selectedFile);
         // Simulate a delay for the upload process
         axios
-          .post("http://localhost:3003/upload", formData)
+          .post("http://localhost:3003/data/upload", formData)
           .then((response) => {
             console.log(response.data);
             this.getDatabaseData();
