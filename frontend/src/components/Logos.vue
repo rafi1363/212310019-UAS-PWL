@@ -3,7 +3,7 @@
     <h2>Upload Dokumen</h2>
     <form @submit.prevent="submitDocument">
       <div class="mb-3">
-        <label for="documentInput" class="form-label">Pilih Dokumen</label>
+        <label class="form-label">Pilih Dokumen</label>
         <input
           type="file"
           class="form-control p-1"
@@ -25,6 +25,11 @@
     <div class="mt-2 border" id="table">
       <b-table ref="myTable" hover :items="items" :fields="fields">
         <template #cell(status)="data">
+          <b-icon-trash
+            icon="trash-fill"
+            variant="danger"
+            @click="deleteItem(data.item)"
+          ></b-icon-trash>
           <span
             :class="{
               'text-danger': data.item.Status === 1,
@@ -41,36 +46,63 @@
 
 <script>
 import axios from "axios";
+import { BIconTrash } from "bootstrap-vue";
+import Swal from "sweetalert2";
 export default {
+  components: {
+    BIconTrash,
+  },
   name: "LogoSave",
   data() {
     return {
       selectedFile: null,
       items: [],
+      fields: [],
       modalShow: false,
       modalMessage: "",
     };
   },
   methods: {
-    async PostDelete(id, index) {
-      try {
-        await axios.delete(`http://localhost:3003/delete/${id}`);
-        // Hapus item dari array setelah berhasil menghapus data di server
-        this.items.splice(index, 1);
-        this.$bvModal.msgBoxOk("PDF file has been uploaded", {
-          title: "Confirmation",
-          size: "sm",
-          buttonSize: "sm",
-          okVariant: "success",
-          headerClass: "p-2 border-bottom-0",
-          footerClass: "p-2 border-top-0",
-          centered: true,
-        });
-      } catch (error) {
-        console.error(error);
-        // Handle error response
-      }
+    // Contoh menggunakan Vue.js sweetalert2 untuk konfirmasi
+
+    deleteItem(item) {
+      console.log("Item to delete:", item); // Tambahkan logging di sini
+      // Gunakan sweetalert2 untuk konfirmasi
+      Swal.fire({
+        title: "Apakah Anda yakin?",
+        text: "Anda tidak akan dapat mengembalikan ini!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Ya, hapus itu!",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          axios
+            .delete("http://localhost:3003/delete-file/${item.id}")
+            .then((response) => {
+              // Hapus item dari array items
+              this.items = this.items.filter((i) => i.id !== item.id);
+              // Tampilkan pesan sukses dengan data response
+              Swal.fire(
+                "Terhapus!",
+                `Item Anda telah dihapus. Pesan: ${response.data}`,
+                "success"
+              );
+            })
+            .catch((error) => {
+              console.error("Error deleting item:", error);
+              // Tampilkan pesan error dengan data response
+              Swal.fire(
+                "Gagal!",
+                `Gagal menghapus item: ${error.response.data}`,
+                "error"
+              );
+            });
+        }
+      });
     },
+
     // Setelah mengambil data dari database (misalnya menggunakan Sequelize)
     async getDatabaseData() {
       try {
@@ -98,34 +130,29 @@ export default {
           .post("http://localhost:3003/upload", formData)
           .then((response) => {
             console.log(response.data);
+            this.getDatabaseData();
             this.$refs.myTable.refresh();
             setTimeout(() => {
-              // Simulate getting a response from the server after upload
-
-              this.$bvModal.msgBoxOk("PDF file has been uploaded", {
-                title: "Confirmation",
-                size: "sm",
-                buttonSize: "sm",
-                okVariant: "success",
-                headerClass: "p-2 border-bottom-0",
-                footerClass: "p-2 border-top-0",
-                centered: true,
+              Swal.fire({
+                position: "center",
+                icon: "success",
+                title: "File anda telah di upload",
+                showConfirmButton: false,
+                timer: 1500,
               });
-            }, 1000); // 1 second delay for simulation
+            });
           })
           .catch((error) => {
             console.error(error);
             // Handle error response
           });
       } else {
-        this.$bvModal.msgBoxOk("Please select a PDF file", {
-          title: "Attention",
-          size: "sm",
-          buttonSize: "sm",
-          okVariant: "danger",
-          headerClass: "p-2 border-bottom-0",
-          footerClass: "p-2 border-top-0",
-          centered: true,
+        Swal.fire({
+          position: "center",
+          icon: "info",
+          title: "silakan upload file anda terlebih dahulu",
+          showConfirmButton: false,
+          timer: 1500,
         });
       }
     },
@@ -141,6 +168,7 @@ export default {
     },
   },
   mounted() {
+    console.log("Items:", this.items); // Tambahkan logging di sini
     this.getDatabaseData();
     // Call the checkAndDeleteExpiredDocuments method every day at midnight
     const interval = 15 * 1000; // 24 hours in milliseconds

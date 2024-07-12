@@ -3,11 +3,12 @@ const app = express();
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const multer = require('multer'); // for handling file uploads
-const fs = require('fs'); // for file system operations
+const fs = require('fs').promises; // for file system operations
 const db_mysql = require("./models");
 const pdfParse = require("pdf-parse");
 const { json } = require('sequelize');
 const moment = require("moment");
+const path = require('path');
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -105,6 +106,85 @@ app.get('/fetch-all', async (req, res) => {
         res.status(500).json({ error: 'Terjadi kesalahan pada server' });
     }
 });
+
+app.delete('/delete-file/:id', async (req, res) => {
+  const fileID = req.params.id;
+  const deleteQuery = 'DELETE FROM files WHERE FileID = ?';
+  const selectQuery = 'SELECT filePath FROM files WHERE FileID = ?';
+
+  try {
+    // Fetch the file path from the database
+    const [files] = await db_mysql.sequelize.query(selectQuery, { replacements: [fileID] });
+    
+    if (files.length === 0) {
+      console.error('File not found in database');
+      return res.status(404).send('File not found');
+    }
+
+    const filePath = files[0].filePath;
+    console.log('File path:', filePath);
+
+    // Correct the file path
+    const fullPath = path.join(__dirname, filePath);
+    console.log('Full path:', fullPath);
+
+    // Delete the file from the uploads folder
+    await fs.unlink(fullPath);
+
+    // Delete the file record from the database
+    await db_mysql.sequelize.query(deleteQuery, { replacements: [fileID] });
+    console.log('File record deleted from database');
+
+    res.send('File deleted successfully');
+  } catch (error) {
+    console.error('Error during file deletion process:', error);
+    res.status(500).send('Error deleting file');
+  }
+});
+
+// Endpoint untuk menghapus file berdasarkan ID
+// app.delete('/delete-file/:id', async (req, res) => {
+//   const fileId = req.params.id;
+//   if (!fileId) {
+//     return res.status(400).json({ error: 'ID file tidak diberikan atau tidak valid' });
+//   }
+
+//   try {
+//     // Menghapus file dari database
+//     const deleteQuery = 'DELETE FROM files WHERE FileID = ?';
+//     const result = await db_mysql.sequelize.query(deleteQuery, { replacements: [fileId] });
+
+//     // Opsional: Hapus file dari sistem file jika diperlukan
+//     // Pastikan Anda mendapatkan `fileName` dari database sebelum menghapus file
+//     // Contoh: const fileName = result[0].fileName;
+//     const filePath = 'uploads/' + __filename;
+//     fs.unlinkSync(filePath);
+
+//     res.json({ message: 'File berhasil dihapus' });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: 'Terjadi kesalahan saat menghapus file' });
+//   }
+// });
+
+// app.get('/get-by-id/:id', async (req, res) => {
+//   const fileId = req.query.id;
+//   const query = "SELECT * FROM `files` WHERE FileID = ?";
+
+//   // Query ke database dengan parameter yang aman untuk mencegah SQL injection
+//   await db_mysql.sequelize.query(query, [fileId], (err, results) => {
+//     if (err) {
+//       // Handle error
+//       res.status(500).send('Server error');
+//     } else {
+//       // Kirim hasil
+//       res.json(results);
+//     }
+//   });
+// })
+
+
+
 const PORT = process.env.PORT || 3003;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
