@@ -86,41 +86,41 @@ const fetchAllHandler = async (req, res) => {
   }
 };
 
-const deleteFileHandler = async (req, res) => {
-  const fileID = req.params.id;
-  const deleteQuery = 'DELETE FROM files WHERE FileID = ?';
-  const selectQuery = 'SELECT filePath FROM files WHERE FileID = ?';
+// const deleteFileHandler = async (req, res) => {
+//   const fileID = req.params.id;
+//   const deleteQuery = 'DELETE FROM files WHERE FileID = ?';
+//   const selectQuery = 'SELECT filePath FROM files WHERE FileID = ?';
 
-  try {
-    const [files] = await db_mysql.sequelize.query(selectQuery, { replacements: [fileID] });
+//   try {
+//     const [files] = await db_mysql.sequelize.query(selectQuery, { replacements: [fileID] });
     
-    if (files.length === 0) {
-      console.error('File not found in database');
-      return res.status(404).send('File not found');
-    }
+//     if (files.length === 0) {
+//       console.error('File not found in database');
+//       return res.status(404).send('File not found');
+//     }
 
-    const filePath = files[0].filePath;
-    console.log('File path:', filePath);
+//     const filePath = files[0].filePath;
+//     console.log('File path:', filePath);
 
-    const fullPath = path.join(__dirname, filePath);
-    console.log('Full path:', fullPath);
+//     const fullPath = path.join(__dirname, filePath);
+//     console.log('Full path:', fullPath);
 
-    await fs.unlink(fullPath);
+//     await fs.unlink(fullPath);
 
-    await db_mysql.sequelize.query(deleteQuery, { replacements: [fileID] });
-    console.log('File record deleted from database');
+//     await db_mysql.sequelize.query(deleteQuery, { replacements: [fileID] });
+//     console.log('File record deleted from database');
 
-    res.send('File deleted successfully');
-  } catch (error) {
-    console.error('Error during file deletion process:', error);
-    res.status(500).send('Error deleting file');
-  }
-};
+//     res.send('File deleted successfully');
+//   } catch (error) {
+//     console.error('Error during file deletion process:', error);
+//     res.status(500).send('Error deleting file');
+//   }
+// };
 
 module.exports = {
   extractDatesHandler,
   uploadHandler,
   fetchAllHandler,
-  deleteFileHandler,
+  // deleteFileHandler,
   upload // Export the upload configuration
 };

@@ -25,11 +25,11 @@
     <div class="mt-2 border" id="table">
       <b-table ref="myTable" hover :items="items" :fields="fields">
         <template #cell(status)="data">
-          <b-icon-trash
+          <!-- <b-icon-trash
             icon="trash-fill"
             variant="danger"
             @click="deleteItem(data.item)"
-          ></b-icon-trash>
+          ></b-icon-trash> -->
           <span
             :class="{
               'text-danger': data.item.Status === 1,
@@ -46,11 +46,11 @@
 
 <script>
 import axios from "axios";
-import { BIconTrash } from "bootstrap-vue";
+// import { BIconTrash } from "bootstrap-vue";
 import Swal from "sweetalert2";
 export default {
   components: {
-    BIconTrash,
+    // BIconTrash,
   },
   name: "LogoSave",
   data() {
@@ -63,45 +63,39 @@ export default {
     };
   },
   methods: {
-    // Contoh menggunakan Vue.js sweetalert2 untuk konfirmasi
-
-    deleteItem(item) {
-      console.log("Item to delete:", item); // Tambahkan logging di sini
-      // Gunakan sweetalert2 untuk konfirmasi
-      Swal.fire({
-        title: "Apakah Anda yakin?",
-        text: "Anda tidak akan dapat mengembalikan ini!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Ya, hapus itu!",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          axios
-            .delete("http://localhost:3003/data/delete-file/${item.id}")
-            .then((response) => {
-              // Hapus item dari array items
-              this.items = this.items.filter((i) => i.id !== item.id);
-              // Tampilkan pesan sukses dengan data response
-              Swal.fire(
-                "Terhapus!",
-                `Item Anda telah dihapus. Pesan: ${response.data}`,
-                "success"
-              );
-            })
-            .catch((error) => {
-              console.error("Error deleting item:", error);
-              // Tampilkan pesan error dengan data response
-              Swal.fire(
-                "Gagal!",
-                `Gagal menghapus item: ${error.response.data}`,
-                "error"
-              );
-            });
-        }
-      });
-    },
+    // deleteItem(item) {
+    //   console.log("Item to delete:", item);
+    //   Swal.fire({
+    //     title: "Apakah Anda yakin?",
+    //     text: "Anda tidak akan dapat mengembalikan ini!",
+    //     icon: "warning",
+    //     showCancelButton: true,
+    //     confirmButtonColor: "#3085d6",
+    //     cancelButtonColor: "#d33",
+    //     confirmButtonText: "Ya, hapus itu!",
+    //   }).then((result) => {
+    //     if (result.isConfirmed) {
+    //       axios
+    //         .delete(`http://localhost:3003/data/delete-file/71`)
+    //         .then((response) => {
+    //           this.items = this.items.filter((i) => i.id !== item.id);
+    //           Swal.fire(
+    //             "Terhapus!",
+    //             `Item Anda telah dihapus. Pesan: ${response.data}`,
+    //             "success"
+    //           );
+    //         })
+    //         .catch((error) => {
+    //           console.error("Error deleting item:", error);
+    //           Swal.fire(
+    //             "Gagal!",
+    //             `Gagal menghapus item: ${error.response.data}`,
+    //             "error"
+    //           );
+    //         });
+    //     }
+    //   });
+    // },
 
     // Setelah mengambil data dari database (misalnya menggunakan Sequelize)
     async getDatabaseData() {
