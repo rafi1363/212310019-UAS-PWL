@@ -6,7 +6,7 @@ const {
   extractDatesHandler,
   uploadHandler,
     fetchAllHandler,
-    // deleteFileHandler,
+    deleteFileHandler,
   upload
 } = require('../Controllers/DataControllers');
 

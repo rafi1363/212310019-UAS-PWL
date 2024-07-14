@@ -50,7 +50,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 export default {
   components: {
-    // BIconTrash,
+    //BIconTrash,
   },
   name: "LogoSave",
   data() {
@@ -62,7 +62,7 @@ export default {
       modalMessage: "",
     };
   },
-  methods: {
+  _methods: {
     // deleteItem(item) {
     //   console.log("Item to delete:", item);
     //   Swal.fire({
@@ -95,8 +95,7 @@ export default {
     //         });
     //     }
     //   });
-    // },
-
+    //},
     // Setelah mengambil data dari database (misalnya menggunakan Sequelize)
     async getDatabaseData() {
       try {
@@ -160,6 +159,12 @@ export default {
         return true;
       });
     },
+  },
+  get methods() {
+    return this._methods;
+  },
+  set methods(value) {
+    this._methods = value;
   },
   mounted() {
     console.log("Items:", this.items); // Tambahkan logging di sini

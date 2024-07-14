@@ -18,15 +18,22 @@ const storage = multer.diskStorage({
 
 
 const upload = multer({ storage: storage });
-function extractDates(text) {
-  const dateRegex = /(\b\d{1,2}[\/.-]\d{1,2}[\/.-]\d{4}\b)/g;
-  const dates = text.match(dateRegex);
-  return dates;
+
+function extractExpirationDate(text) {
+  const phraseRegex = /Expired in\s*:\s*(\d{1,2}[\/.-]\d{1,2}[\/.-]\d{4})/g;
+  const matches = text.match(phraseRegex);
+  if (matches) {
+    return matches.map(match => {
+      const dateMatch = match.match(/(\d{1,2}[\/.-]\d{1,2}[\/.-]\d{4})/);
+      return dateMatch ? dateMatch[0] : null;
+    }).filter(date => date !== null);
+  }
+  return [];
 }
 
 const extractDatesHandler = (req, res) => {
   const text = req.body;
-  const dates = extractDates(text);
+  const dates = extractExpirationDate(text);
   res.json({ extractedDates: dates });
 };
 
@@ -34,7 +41,7 @@ const uploadHandler = async (req, res) => {
   try {
     const fileContent = fs.readFileSync(req.file.path);
     const data = await pdfParse(fileContent);
-    const dates = extractDates(data.text);
+    const dates = extractExpirationDate(data.text);
     const { originalname, path } = req.file;
     const currentDate = moment();
 
@@ -85,6 +92,9 @@ const fetchAllHandler = async (req, res) => {
     res.status(500).json({ error: 'Terjadi kesalahan pada server' });
   }
 };
+
+
+
 
 // const deleteFileHandler = async (req, res) => {
 //   const fileID = req.params.id;
